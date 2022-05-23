@@ -10,8 +10,10 @@ import * as kx from "@pulumi/kubernetesx";
 // These imports include consts that are used just so the bootstrap
 // deployment is the same (and in the same place) as the
 // stack-configured deployment.
-import {pulumiSecretName, OperatorStack} from "../operator/stack";
+import {OperatorStack} from "../operator/stack";
 import {namespace, deploymentName, PulumiKubernetesOperator} from "../operator/operator";
+
+const pulumiSecretName = "pulumi-secret";
 
 // By default, uses $HOME/.kube/config when no kubeconfig is set. For bootstrapping, that's what I want.
 const provider = new k8s.Provider("k8s");
@@ -39,4 +41,6 @@ const accessToken = new kx.Secret(pulumiSecretName, {
 const op = new PulumiKubernetesOperator(deploymentName, {namespace, provider});
 
 // Install a stack which will sync the operator configuration.
-const opstack = OperatorStack(stackName, stackProjectRepo, op.crds, provider);
+const opstack = OperatorStack(stackName, accessToken.metadata.name, stackProjectRepo, op.crds, provider);
+
+export const secretName = accessToken.metadata.name

@@ -5,13 +5,11 @@ import * as k8s from "@pulumi/kubernetes";
 import * as kx from "@pulumi/kubernetesx";
 import * as operator from "./operator";
 
-// The expected name of a secret with the Pulumi access token
-const pulumiSecretName = "pulumi-secret";
 const resourceName = "pulumi-kubernetes-operator";
 
 // This creates a "Stack" object pointing at the operator
 // configuration in this repo.
-function OperatorStack(stackName, repo, predecessor, provider) {
+function OperatorStack(stackName, pulumiSecretName, repo, predecessor, provider) {
     return new k8s.apiextensions.CustomResource(resourceName, {
         apiVersion: 'pulumi.com/v1',
         kind: 'Stack',
@@ -34,4 +32,4 @@ function OperatorStack(stackName, repo, predecessor, provider) {
     }, {dependsOn: predecessor});
 }
 
-export {OperatorStack, pulumiSecretName};
+export {OperatorStack};
