@@ -14,8 +14,10 @@ const stackConfig = {
     stackProjectRepo: config.require('stackProjectRepo'),
 };
 
+const provider = new k8s.Provider("k8s", {enableReplaceCRD: true});
+
 // This is the definition of the operator itself.
-const op = new PulumiKubernetesOperator(deploymentName, {});
+const op = new PulumiKubernetesOperator(deploymentName, {provider});
 
 // Now, construct a Stack custom resource to sync this program.
 const opstack = OperatorStack(op, stackConfig);
