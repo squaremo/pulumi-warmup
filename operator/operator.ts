@@ -12,8 +12,8 @@ interface ServiceAccountArgs {
     provider: k8s.Provider;
 }
 
-function installCRDs(name: string, fileURL: string): k8s.yaml.ConfigFile {
-    return new k8s.yaml.ConfigFile(name, {file: fileURL})
+function installCRDs(name: string, fileURL: string, provider: k8s.Provider): k8s.yaml.ConfigFile {
+    return new k8s.yaml.ConfigFile(name, {file: fileURL}, {provider})
 }
 
 function createServiceAccount(
@@ -170,7 +170,7 @@ export class PulumiKubernetesOperator extends pulumi.ComponentResource {
         super("pulumi-kubernetes-operator", name, args, opts);
 
         // Install the CRD
-        this.crds = installCRDs(name, "https://raw.githubusercontent.com/pulumi/pulumi-kubernetes-operator/master/deploy/crds/pulumi.com_stacks.yaml");
+        this.crds = installCRDs(name, "https://raw.githubusercontent.com/pulumi/pulumi-kubernetes-operator/master/deploy/crds/pulumi.com_stacks.yaml", opts.provider);
 
         // Create the service account.
         const serviceAccount = createServiceAccount(name, {

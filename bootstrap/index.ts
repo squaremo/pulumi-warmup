@@ -14,9 +14,10 @@ import {OperatorStack} from "../operator/stack";
 import {namespace, deploymentName, PulumiKubernetesOperator} from "../operator/operator";
 
 const pulumiSecretName = "pulumi-secret";
+const stackName = `${pulumi.getProject()}/${pulumi.getStack()}`;
 
 // By default, uses $HOME/.kube/config when no kubeconfig is set. For bootstrapping, that's what I want.
-const provider = new k8s.Provider("k8s");
+const provider = new k8s.Provider("k8s", {enableReplaceCRD: true});
 
 // Get things like the Pulumi API token and URL for the repo, from
 // config.
@@ -28,19 +29,17 @@ const pulumiAccessToken = config.requireSecret("pulumiAccessToken");
 // const awsSessionToken = config.requireSecret("awsSessionToken");
 
 const stackProjectRepo = config.get("stackProjectRepo") || "https://github.com/squaremo/pulumi-warmup.git";
-const stackName = config.get("stackName");
 
 // Create the creds as a Kubernetes Secret; this will be referenced by the operator stack.
 const accessToken = new kx.Secret(pulumiSecretName, {
     stringData: {accessToken: pulumiAccessToken},
 });
 
-// Install the operator itself (NB its name could be hard-wired,
-// perhaps in a function in stack.ts, since there's just the one; but
-// for the sake of fewer layers, just use the same const.)
+// TODO the name is something that might need to be exported as an
+// output too, if something needs to synchronise on it.
 const op = new PulumiKubernetesOperator(deploymentName, {namespace, provider});
 
 // Install a stack which will sync the operator configuration.
 const opstack = OperatorStack(stackName, accessToken.metadata.name, stackProjectRepo, op.crds, provider);
 
-export const secretName = accessToken.metadata.name
+export const secretName = accessToken.metadata.name;
