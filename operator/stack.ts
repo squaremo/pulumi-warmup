@@ -5,39 +5,38 @@ import * as k8s from "@pulumi/kubernetes";
 import * as kx from "@pulumi/kubernetesx";
 import * as operator from "./operator";
 
-const resourceName = "pulumi-kubernetes-operator";
+const resourceName = "pulumi-kubernetes-operator-sync";
 
-// This creates a "Stack" object pointing at the operator
-// configuration in this repo.
-function OperatorStack(stackName, pulumiSecretName, repo, predecessor, provider) {
+// The resource needs a fully-qualified stack, since it's not running in the context of a user
+// account. It's unclear how you would calculate the fully-qualified name even when running in the
+// context of a user, so I've done a halfway job, with the user (/org) hard-wired.
+const stackName = `squaremo/${pulumi.getProject()}/${pulumi.getStack()}`;
+
+// This creates a "Stack" object pointing at the operator configuration in this repo.
+function OperatorStack(predecessor, config) {
     return new k8s.apiextensions.CustomResource(resourceName, {
         apiVersion: 'pulumi.com/v1',
         kind: 'Stack',
         metadata: {}, // this is a workaround to make sure the metadata can be used as an output
         spec: {
             stack: stackName,
-            projectRepo: repo,
+            projectRepo: config.stackProjectRepo,
             branch: "refs/heads/main",
             repoDir: 'operator',
-            config: {
-                // these tie the knot between the bootstrap invocation (where e.g., the secret is created)
-                // and the ongoing sync (which simply has to refer to the name)
-                'secretName': pulumiSecretName,
-                'stackProjectRepo': repo,
-            },
+            config, // just use it as given
             envRefs: {
                 PULUMI_ACCESS_TOKEN:
                 {
                     type: "Secret",
                     secret: {
-                        name: pulumiSecretName,
+                        name: config.secretName,
                         key: "accessToken",
                     },
                 },
             },
             destroyOnFinalize: true,
         },
-    }, {dependsOn: predecessor, });
+    }, {dependsOn: predecessor});
 }
 
 export {OperatorStack};

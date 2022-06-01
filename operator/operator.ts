@@ -12,17 +12,13 @@ interface ServiceAccountArgs {
     provider: k8s.Provider;
 }
 
-function installCRDs(name: string, fileURL: string, provider: k8s.Provider): k8s.yaml.ConfigFile {
-    return new k8s.yaml.ConfigFile(name, {file: fileURL}, {provider})
-}
-
 function createServiceAccount(
     name: string,
     args: ServiceAccountArgs,
 ): k8s.core.v1.ServiceAccount {
     return new k8s.core.v1.ServiceAccount(name, {
         metadata: {namespace: args.namespace},
-    },{provider: args.provider});
+    },{ provider: args.provider });
 }
 
 // Create a Role.
@@ -128,7 +124,7 @@ function createRole(
                 ],
             },
         ],
-    },{provider: args.provider});
+    },{ provider: args.provider });
 }
 
 // Create a RoleBinding.
@@ -158,7 +154,6 @@ function createRoleBinding(
 }
 
 export interface PulumiKubernetesOperatorArgs {
-    namespace: pulumi.Input<string>;
     provider: k8s.Provider,
 }
 export class PulumiKubernetesOperator extends pulumi.ComponentResource {
@@ -167,34 +162,31 @@ export class PulumiKubernetesOperator extends pulumi.ComponentResource {
     constructor(name: string,
         args: PulumiKubernetesOperatorArgs,
         opts: pulumi.ComponentResourceOptions = {}) {
-        super("pulumi-kubernetes-operator", name, args, opts);
-
-        // Install the CRD
-        this.crds = installCRDs(name, "https://raw.githubusercontent.com/pulumi/pulumi-kubernetes-operator/master/deploy/crds/pulumi.com_stacks.yaml", opts.provider);
+        super("pulumi-kubernetes-operator", name, args, opts); // NB always in default namespace
 
         // Create the service account.
         const serviceAccount = createServiceAccount(name, {
-            namespace: args.namespace,
+            namespace,
             provider: args.provider,
         });
         const serviceAccountName = serviceAccount.metadata.name;
 
         // Create RBAC role and binding.
         const role = createRole(name, {
-            namespace: args.namespace,
+            namespace,
             provider: args.provider,
         });
         const roleName = role.metadata.name;
         const roleBinding = createRoleBinding(name, {
             serviceAccountName: serviceAccountName,
             roleName: roleName,
-            namespace: args.namespace,
+            namespace,
             provider: args.provider,
         });
 
         // Create the deployment.
         this.deployment = new k8s.apps.v1.Deployment(name, {
-            metadata: {namespace: args.namespace},
+            metadata: {namespace},
             spec: {
                 replicas: 1,
                 selector: {
@@ -244,6 +236,6 @@ export class PulumiKubernetesOperator extends pulumi.ComponentResource {
                     },
                 },
             },
-        }, {dependsOn: [this.crds, roleBinding]});
+        }, {dependsOn: [roleBinding]});
     }
 }
