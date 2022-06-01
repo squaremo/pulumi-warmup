@@ -12,9 +12,8 @@ import * as kx from "@pulumi/kubernetesx";
 // deployment is the same (and in the same place) as the
 // stack-configured deployment.
 import {OperatorStack} from "../operator/stack";
-import {namespace, PulumiKubernetesOperator} from "../operator/operator";
+import {deploymentName, PulumiKubernetesOperator} from "../operator/operator";
 
-const deploymentName = 'pulumi-kubernetes-operator';
 const pulumiSecretName = 'pulumi-secret';
 
 // By default, uses $HOME/.kube/config when no kubeconfig is set. For bootstrapping, that's what I want.
@@ -50,7 +49,6 @@ const op = new PulumiKubernetesOperator(deploymentName, {provider}, {dependsOn: 
 // These are given to the stack object so it can recursively create itself while keeping the same
 // names for things.
 const stackConfig = {
-    deploymentResourceName: op.deployment.metadata.name,
     secretName: accessToken.metadata.name,
     stackProjectRepo: stackProjectRepo,
 };
