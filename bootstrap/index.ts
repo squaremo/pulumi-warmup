@@ -1,4 +1,4 @@
-// Copyright 2021, Pulumi Corporation.  All rights reserved.
+// Copyright 2022, Pulumi Corporation.  All rights reserved.
 
 // This file is used to bootstrap the operator, by creating necessary
 // secrets (taken from local config), and running the operator with a
@@ -7,6 +7,7 @@
 import * as pulumi from "@pulumi/pulumi";
 import * as k8s from "@pulumi/kubernetes";
 import * as kx from "@pulumi/kubernetesx";
+
 // These imports include consts that are used just so the bootstrap
 // deployment is the same (and in the same place) as the
 // stack-configured deployment.
@@ -41,5 +42,3 @@ const op = new PulumiKubernetesOperator(deploymentName, {namespace, provider});
 
 // Install a stack which will sync the operator configuration.
 const opstack = OperatorStack(stackName, accessToken.metadata.name, stackProjectRepo, op.crds, provider);
-
-export const secretName = accessToken.metadata.name;

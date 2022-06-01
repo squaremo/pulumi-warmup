@@ -17,10 +17,10 @@ function OperatorStack(stackName, pulumiSecretName, repo, predecessor, provider)
         spec: {
             stack: stackName,
             projectRepo: repo,
-            branch: "refs/heads/master",
+            branch: "refs/heads/main",
             repoDir: 'operator',
             config: {
-                 // these tie the knot between the bootstrap invocation (where e.g., the secret is created)
+                // these tie the knot between the bootstrap invocation (where e.g., the secret is created)
                 // and the ongoing sync (which simply has to refer to the name)
                 'secretName': pulumiSecretName,
                 'stackProjectRepo': repo,
