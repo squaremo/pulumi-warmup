@@ -15,7 +15,7 @@ const stackConfig = {
 };
 
 // This is the definition of the operator itself.
-const op = new PulumiKubernetesOperator(deploymentName);
+const op = new PulumiKubernetesOperator(deploymentName, {});
 
 // Now, construct a Stack custom resource to sync this program.
 const opstack = OperatorStack(op, stackConfig);
